@@ -21,28 +21,19 @@ const MAINNET_CONTRACT_IDS = ZkBagContractOptions(
       '0x616db54ca564660cd58e36a4548be68b289371ef2611485c62c374a60960084e',
 );
 
-const TESTNET_IDS = ZkBagContractOptions(
-  packageId:
-      '0x036fee67274d0d85c3532f58296abe0dee86b93864f1b2b9074be6adb388f138',
-  bagStoreId:
-      '0x5c63e71734c82c48a3cb9124c54001d1a09736cfb1668b3b30cd92a96dd4d0ce',
-  bagStoreTableId:
-      '0x4e1bc4085d64005e03eb4eab2510d52 7aeba9548cda431cb8f149ff37451f870',
-);
-
 class ZkBag<IDs> {
   final String _package;
   final String _module = 'zk_bag';
-  final IDs ids;
+  final IDs? ids = null;
 
-  ZkBag(this._package, this.ids);
+  ZkBag({required String package}) : _package = package;
 
   void newTransaction(TransactionBlock txb,
       {required List<dynamic> arguments}) {
     txb.moveCall(
       '$_package::$_module::new',
       arguments: [
-        txb.object(arguments[0]),
+        txb.objectId(arguments[0]),
         arguments[1] is String ? txb.pureAddress(arguments[1]) : arguments[1],
       ],
     );
@@ -53,7 +44,7 @@ class ZkBag<IDs> {
     return txb.moveCall(
       '$_package::$_module::add',
       arguments: [
-        txb.object(arguments[0]),
+        txb.objectId(arguments[0]),
         arguments[1] is String ? txb.pureAddress(arguments[1]) : arguments[1],
         txb.object(arguments[2]),
       ],

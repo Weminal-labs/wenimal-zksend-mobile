@@ -10,6 +10,13 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+  sui: ^0.2.0
+  poseidon: ^0.0.1
+  jwt_decoder: ^2.0.1
+  http: ^1.2.0
+
+
+
 
 
 dev_dependencies:

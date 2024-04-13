@@ -14,6 +14,12 @@ void main() {
       await ZkSendLinkBuilder.createLink(suiAccount, 300000000);
     },
   );
+  test(
+    'test createLinkObject()',
+    () async {
+      await ZkSendLinkBuilder.createLinkObject(suiAccount, ZkSendLinkBuilder());
+    },
+  );
 
   // test('getlink', () {
   //   String url = ZkSendLinkBuilder.getLink();

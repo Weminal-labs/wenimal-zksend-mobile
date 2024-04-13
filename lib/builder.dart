@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:dart_bech32/dart_bech32.dart';
+import 'package:sui/builder/inputs.dart';
 import 'package:sui/sui.dart';
 import 'package:sui/types/common.dart';
 import 'package:zksend/zk_bag.dart';
@@ -43,6 +44,43 @@ class ZkSendLinkBuilder {
   static final SUI_COIN_TYPE = normalizeStructTagString('0x2::sui::SUI');
   static final Ed25519Keypair keypair = Ed25519Keypair();
 
+  static Future<void> createLinkObject(
+    SuiAccount sender,
+    ZkSendLinkBuilder link,
+  ) async {
+    ZkBag contract = ZkBag(package: TESTNET_IDS.packageId);
+    final txb = TransactionBlock();
+    txb.setSender(sender.getAddress());
+    var receive = SuiAccount.ed25519Account();
+    //new
+    // print('recive.address: ${receive.getAddress()}');
+    // final splits = txb.splitCoins(txb.gas, [txb.pureInt(300000000)]);
+    // print('slipts[0]: ${splits[0]}');
+    // contract.add(txb,
+    //     arguments: [TESTNET_IDS.bagStoreId, receive.getAddress(), splits[0]],
+    //     typeArguments: ['0x2::coin::Coin<0x2::sui::SUI>']);
+    SuiObjectRef suiObjectRef = SuiObjectRef(
+        "5d3LCcnHPdaNZ9EZMLeWvLFmh5VF8fxzRDfWx8RXb1Sf",
+        "0xc690ace9af371ce7abc0cf63c6b667dcf0562e1582411cbf70294f94aa819314",
+        28680386);
+    final objectRef = Inputs.objectRef(suiObjectRef);
+    contract.newTransaction(txb,
+        arguments: [TESTNET_IDS.bagStoreId, receive.getAddress()]);
+
+    contract.add(txb, arguments: [
+      TESTNET_IDS.bagStoreId,
+      receive.getAddress(),
+      objectRef
+    ], typeArguments: [
+      '0xb11eda772add7178d97d98fbcb5dc73ea1afec0bb94705416c43efdbedba6e4b::suitraders::Suitrader'
+    ]);
+    final addResult = await SuiClient(SuiUrls.testnet)
+        .signAndExecuteTransactionBlock(sender, txb);
+    print('createLink: addResult.digest: ${addResult.digest}');
+    var url = getLink(receive.getSecretKey());
+    print('createLink: $url');
+  }
+
   static Future<void> createLink(
     SuiAccount sender,
     int balances,
@@ -57,6 +95,7 @@ class ZkSendLinkBuilder {
         arguments: [TESTNET_IDS.bagStoreId, receive.getAddress()]);
     print('recive.address: ${receive.getAddress()}');
     final splits = txb.splitCoins(txb.gas, [txb.pureInt(balances)]);
+    print('slipts[0]: ${splits[0]}');
     contract.add(txb,
         arguments: [TESTNET_IDS.bagStoreId, receive.getAddress(), splits[0]],
         typeArguments: ['0x2::coin::Coin<0x2::sui::SUI>']);

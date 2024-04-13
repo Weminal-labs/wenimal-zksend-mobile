@@ -53,26 +53,27 @@ class ZkSendLinkBuilder {
     txb.setSender(sender.getAddress());
     var receive = SuiAccount.ed25519Account();
     //new
-    // print('recive.address: ${receive.getAddress()}');
-    // final splits = txb.splitCoins(txb.gas, [txb.pureInt(300000000)]);
-    // print('slipts[0]: ${splits[0]}');
-    // contract.add(txb,
-    //     arguments: [TESTNET_IDS.bagStoreId, receive.getAddress(), splits[0]],
-    //     typeArguments: ['0x2::coin::Coin<0x2::sui::SUI>']);
-    SuiObjectRef suiObjectRef = SuiObjectRef(
-        "5d3LCcnHPdaNZ9EZMLeWvLFmh5VF8fxzRDfWx8RXb1Sf",
-        "0xc690ace9af371ce7abc0cf63c6b667dcf0562e1582411cbf70294f94aa819314",
-        28680386);
-    final objectRef = Inputs.objectRef(suiObjectRef);
     contract.newTransaction(txb,
         arguments: [TESTNET_IDS.bagStoreId, receive.getAddress()]);
+
+    print('recive.address: ${receive.getAddress()}');
+    final splits = txb.splitCoins(txb.gas, [txb.pureInt(300000000)]);
+    print('slipts[0]: ${splits[0]}');
+    contract.add(txb,
+        arguments: [TESTNET_IDS.bagStoreId, receive.getAddress(), splits[0]],
+        typeArguments: ['0x2::coin::Coin<0x2::sui::SUI>']);
+    SuiObjectRef suiObjectRef = SuiObjectRef(
+        "Bc2xLwEqP2xGkWBuyKaRwei8sYehC3tr3fGYecrUJvYR",
+        "0xd8c1f5b9530abb3a454ed145740616fcfec0bca6ef735342560e254198f1e1a8",
+        29091169);
+    final objectRef = Inputs.objectRef(suiObjectRef);
 
     contract.add(txb, arguments: [
       TESTNET_IDS.bagStoreId,
       receive.getAddress(),
       objectRef
     ], typeArguments: [
-      '0xb11eda772add7178d97d98fbcb5dc73ea1afec0bb94705416c43efdbedba6e4b::suitraders::Suitrader'
+      '0xfdba6d8e99368a97d27d4e797da45ef43fe47e90aa70f80d5eeaa2e5689bda64::event::Ticket'
     ]);
     final addResult = await SuiClient(SuiUrls.testnet)
         .signAndExecuteTransactionBlock(sender, txb);

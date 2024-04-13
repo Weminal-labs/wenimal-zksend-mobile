@@ -90,8 +90,7 @@ class ZkSendLinkBuilder {
     var hash = '\$${encodedSecretKey}';
     print('hash: $hash');
 
-    var link =
-        "${DEFAULT_ZK_SEND_LINK_OPTIONS['host']}/claim#${encodedSecretKey}";
+    var link = "${DEFAULT_ZK_SEND_LINK_OPTIONS['host']}/claim#${hash}";
 
     return link.toString();
   }

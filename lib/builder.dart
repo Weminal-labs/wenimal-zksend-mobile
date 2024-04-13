@@ -24,7 +24,6 @@ const Map<String, int> SIGNATURE_SCHEME_TO_FLAG = {
 };
 const SUI_PRIVATE_KEY_PREFIX = 'suiprivkey';
 
-// const PRIVATE_KEY_SIZE = 64;
 const PRIVATE_KEY_SIZE = 32;
 
 const Map<int, String> SIGNATURE_FLAG_TO_SCHEME = {
@@ -43,8 +42,6 @@ const DEFAULT_ZK_SEND_LINK_OPTIONS = {
 class ZkSendLinkBuilder {
   static final SUI_COIN_TYPE = normalizeStructTagString('0x2::sui::SUI');
   static final Ed25519Keypair keypair = Ed25519Keypair();
-  // static final Ed25519Keypair keypair = Ed25519Keypair.fromMnemonics(
-  //     'stereo cart lava victory wasp emerge impulse access swing casual curious never');
 
   static Future<void> createLink(
     SuiAccount sender,
@@ -56,12 +53,6 @@ class ZkSendLinkBuilder {
     final mergedCoins = Map.fromEntries([MapEntry(SUI_COIN_TYPE, txb.gas)]);
     var receive = SuiAccount.ed25519Account();
 
-    // receive = SuiAccount.fromMnemonics(
-    //     'exotic dizzy control quality catalog fiscal asset accuse ceiling sauce escape amateur',
-    //     SignatureScheme.Ed25519);
-    // receive = SuiAccount.fromMnemonics(
-    //     'frequent cabin vacant sight empower payment soon globe tone panther solution day',
-    //     SignatureScheme.Ed25519);
     contract.newTransaction(txb,
         arguments: [TESTNET_IDS.bagStoreId, receive.getAddress()]);
     print('recive.address: ${receive.getAddress()}');
@@ -77,13 +68,6 @@ class ZkSendLinkBuilder {
   }
 
   static getLink(Uint8List secretKey) {
-    print('get link');
-    // print(
-    //     "encodeSuiPrivateKey(secretKey, 'ED25519'): ${encodeSuiPrivateKey(secretKey, 'ED25519')}");
-    print('xxxxxxxxxxxxxx');
-    print(
-        'secretKey.sublist(0, PRIVATE_KEY_SIZE).length = ${secretKey.sublist(0, PRIVATE_KEY_SIZE).length}');
-
     var encodedSecretKey = base64Encode(decodeSuiPrivateKeySecretKey(
         encodeSuiPrivateKey(
             secretKey.sublist(0, PRIVATE_KEY_SIZE), 'ED25519')));

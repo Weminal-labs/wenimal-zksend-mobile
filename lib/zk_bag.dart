@@ -24,7 +24,6 @@ const MAINNET_CONTRACT_IDS = ZkBagContractOptions(
 class ZkBag<IDs> {
   final String _package;
   final String _module = 'zk_bag';
-  final IDs? ids = null;
 
   ZkBag({required String package}) : _package = package;
 
@@ -107,6 +106,3 @@ class ZkBag<IDs> {
     );
   }
 }
-
-// Note: The TransactionBlock, TransactionArgument, and related classes are not defined in this translation.
-// They would need to be implemented in Dart, mimicking their TypeScript counterparts.

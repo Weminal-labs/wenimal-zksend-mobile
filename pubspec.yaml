@@ -14,6 +14,7 @@ dependencies:
   poseidon: ^0.0.1
   jwt_decoder: ^2.0.1
   http: ^1.2.0
+  dart_bech32: ^2.0.0
 
 
 

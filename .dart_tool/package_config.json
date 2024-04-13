@@ -74,6 +74,12 @@
       "languageVersion": "2.19"
     },
     {
+      "name": "dart_bech32",
+      "rootUri": "file:///C:/Users/ADMIN/AppData/Local/Pub/Cache/hosted/pub.dev/dart_bech32-2.0.0",
+      "packageUri": "lib/",
+      "languageVersion": "2.12"
+    },
+    {
       "name": "dio",
       "rootUri": "file:///C:/Users/ADMIN/AppData/Local/Pub/Cache/hosted/pub.dev/dio-5.4.2+1",
       "packageUri": "lib/",
@@ -302,7 +308,7 @@
       "languageVersion": "3.0"
     }
   ],
-  "generated": "2024-04-11T14:10:03.002167Z",
+  "generated": "2024-04-12T22:29:33.307745Z",
   "generator": "pub",
   "generatorVersion": "3.3.3"
 }

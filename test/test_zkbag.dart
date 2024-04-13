@@ -1,6 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sui/builder/transaction_block.dart';
 import 'package:sui/types/common.dart';
+import 'package:zksend/builder.dart';
 import 'package:zksend/zk_bag.dart';
 import 'package:sui/sui.dart';
 

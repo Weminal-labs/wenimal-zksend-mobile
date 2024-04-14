@@ -4,16 +4,18 @@ import 'dart:typed_data';
 import 'package:dart_bech32/dart_bech32.dart';
 import 'package:sui/builder/inputs.dart';
 import 'package:sui/sui.dart';
+import 'package:sui/sui_urls.dart';
 import 'package:sui/types/common.dart';
 import 'package:zksend/zk_bag.dart';
+import 'package:zksend/zk_sign_builder.dart';
 
-const TESTNET_IDS = ZkBagContractOptions(
+const MAINNET_IDS = ZkBagContractOptions(
   packageId:
-      '0x036fee67274d0d85c3532f58296abe0dee86b93864f1b2b9074be6adb388f138',
+      '0x5bb7d0bb3240011336ca9015f553b2646302a4f05f821160344e9ec5a988f740',
   bagStoreId:
-      '0x5c63e71734c82c48a3cb9124c54001d1a09736cfb1668b3b30cd92a96dd4d0ce',
+      '0x65b215a3f2a951c94313a89c43f0adbd2fd9ea78a0badf81e27d1c9868a8b6fe',
   bagStoreTableId:
-      '0x4e1bc4085d64005e03eb4eab2510d52 7aeba9548cda431cb8f149ff37451f870',
+      '0x616db54ca564660cd58e36a4548be68b289371ef2611485c62c374a60960084e',
 );
 
 const Map<String, int> SIGNATURE_SCHEME_TO_FLAG = {
@@ -37,58 +39,80 @@ const Map<int, String> SIGNATURE_FLAG_TO_SCHEME = {
 const DEFAULT_ZK_SEND_LINK_OPTIONS = {
   'host': 'https://dev.polymedia-send.pages.dev',
   'path': '/claim',
-  'network': 'testnet',
+  'network': 'mainnet',
 };
+
+final suiClient = SuiClient(SuiUrls.mainnet);
 
 class ZkSendLinkBuilder {
   static final SUI_COIN_TYPE = normalizeStructTagString('0x2::sui::SUI');
   static final Ed25519Keypair keypair = Ed25519Keypair();
 
   static Future<String> createLinkObject({
-    required SuiAccount sender,
+    required Keypair ephemeralKeyPair,
+    required String senderAddress,
     required SuiObjectRef suiObjectRef,
     required String objectType,
   }) async {
-    ZkBag contract = ZkBag(package: TESTNET_IDS.packageId);
     final txb = TransactionBlock();
-    txb.setSender(sender.getAddress());
+
+    ZkBag contract = ZkBag(package: MAINNET_IDS.packageId);
+    txb.setSender(senderAddress);
     var receive = SuiAccount.ed25519Account();
     //new
     contract.newTransaction(txb,
-        arguments: [TESTNET_IDS.bagStoreId, receive.getAddress()]);
+        arguments: [MAINNET_IDS.bagStoreId, receive.getAddress()]);
 
-    final splits = txb.splitCoins(txb.gas, [txb.pureInt(20000000)]);
+    final splits = txb.splitCoins(txb.gas, [txb.pureInt(10000000)]);
     contract.add(txb,
-        arguments: [TESTNET_IDS.bagStoreId, receive.getAddress(), splits[0]],
+        arguments: [MAINNET_IDS.bagStoreId, receive.getAddress(), splits[0]],
         typeArguments: ['0x2::coin::Coin<0x2::sui::SUI>']);
     final objectRef = Inputs.objectRef(suiObjectRef);
 
     contract.add(txb,
-        arguments: [TESTNET_IDS.bagStoreId, receive.getAddress(), objectRef],
+        arguments: [MAINNET_IDS.bagStoreId, receive.getAddress(), objectRef],
         typeArguments: [objectType]);
-    await SuiClient(SuiUrls.testnet)
-        .signAndExecuteTransactionBlock(sender, txb);
+    final sign = await txb
+        .sign(SignOptions(signer: ephemeralKeyPair, client: suiClient));
+    final zkSign = ZkSignBuilder.getZkSign(signSignature: sign.signature);
+
+    final respZkSend = await suiClient.executeTransactionBlock(
+      sign.bytes,
+      [zkSign],
+      options: SuiTransactionBlockResponseOptions(showEffects: true),
+    );
+    print('respZkSend: ${respZkSend.digest}');
     var url = getLink(receive.getSecretKey());
     return url;
   }
 
-  static Future<String> createLink(
-    SuiAccount sender,
-    int balances,
-  ) async {
-    ZkBag contract = ZkBag(package: TESTNET_IDS.packageId);
+  static Future<String> createLink({
+    required Keypair ephemeralKeyPair,
+    required String senderAddress,
+    required int balances,
+  }) async {
     final txb = TransactionBlock();
-    txb.setSender(sender.getAddress());
+    ZkBag contract = ZkBag(package: MAINNET_IDS.packageId);
+
+    txb.setSender(senderAddress);
     var receive = SuiAccount.ed25519Account();
 
     contract.newTransaction(txb,
-        arguments: [TESTNET_IDS.bagStoreId, receive.getAddress()]);
+        arguments: [MAINNET_IDS.bagStoreId, receive.getAddress()]);
     final splits = txb.splitCoins(txb.gas, [txb.pureInt(balances)]);
     contract.add(txb,
-        arguments: [TESTNET_IDS.bagStoreId, receive.getAddress(), splits[0]],
+        arguments: [MAINNET_IDS.bagStoreId, receive.getAddress(), splits[0]],
         typeArguments: ['0x2::coin::Coin<0x2::sui::SUI>']);
-    await SuiClient(SuiUrls.testnet)
-        .signAndExecuteTransactionBlock(sender, txb);
+    final sign = await txb
+        .sign(SignOptions(signer: ephemeralKeyPair, client: suiClient));
+    final zkSign = ZkSignBuilder.getZkSign(signSignature: sign.signature);
+
+    final respZkSend = await suiClient.executeTransactionBlock(
+      sign.bytes,
+      [zkSign],
+      options: SuiTransactionBlockResponseOptions(showEffects: true),
+    );
+    print('respZkSend: ${respZkSend.digest}');
     var url = getLink(receive.getSecretKey());
     return url;
   }

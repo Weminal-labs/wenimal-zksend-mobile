@@ -44,10 +44,11 @@ class ZkSendLinkBuilder {
   static final SUI_COIN_TYPE = normalizeStructTagString('0x2::sui::SUI');
   static final Ed25519Keypair keypair = Ed25519Keypair();
 
-  static Future<void> createLinkObject(
-    SuiAccount sender,
-    ZkSendLinkBuilder link,
-  ) async {
+  static Future<String> createLinkObject({
+    required SuiAccount sender,
+    required SuiObjectRef suiObjectRef,
+    required String objectType,
+  }) async {
     ZkBag contract = ZkBag(package: TESTNET_IDS.packageId);
     final txb = TransactionBlock();
     txb.setSender(sender.getAddress());
@@ -56,55 +57,40 @@ class ZkSendLinkBuilder {
     contract.newTransaction(txb,
         arguments: [TESTNET_IDS.bagStoreId, receive.getAddress()]);
 
-    print('recive.address: ${receive.getAddress()}');
-    final splits = txb.splitCoins(txb.gas, [txb.pureInt(300000000)]);
-    print('slipts[0]: ${splits[0]}');
+    final splits = txb.splitCoins(txb.gas, [txb.pureInt(20000000)]);
     contract.add(txb,
         arguments: [TESTNET_IDS.bagStoreId, receive.getAddress(), splits[0]],
         typeArguments: ['0x2::coin::Coin<0x2::sui::SUI>']);
-    SuiObjectRef suiObjectRef = SuiObjectRef(
-        "Bc2xLwEqP2xGkWBuyKaRwei8sYehC3tr3fGYecrUJvYR",
-        "0xd8c1f5b9530abb3a454ed145740616fcfec0bca6ef735342560e254198f1e1a8",
-        29091169);
     final objectRef = Inputs.objectRef(suiObjectRef);
 
-    contract.add(txb, arguments: [
-      TESTNET_IDS.bagStoreId,
-      receive.getAddress(),
-      objectRef
-    ], typeArguments: [
-      '0xfdba6d8e99368a97d27d4e797da45ef43fe47e90aa70f80d5eeaa2e5689bda64::event::Ticket'
-    ]);
-    final addResult = await SuiClient(SuiUrls.testnet)
+    contract.add(txb,
+        arguments: [TESTNET_IDS.bagStoreId, receive.getAddress(), objectRef],
+        typeArguments: [objectType]);
+    await SuiClient(SuiUrls.testnet)
         .signAndExecuteTransactionBlock(sender, txb);
-    print('createLink: addResult.digest: ${addResult.digest}');
     var url = getLink(receive.getSecretKey());
-    print('createLink: $url');
+    return url;
   }
 
-  static Future<void> createLink(
+  static Future<String> createLink(
     SuiAccount sender,
     int balances,
   ) async {
     ZkBag contract = ZkBag(package: TESTNET_IDS.packageId);
     final txb = TransactionBlock();
     txb.setSender(sender.getAddress());
-    final mergedCoins = Map.fromEntries([MapEntry(SUI_COIN_TYPE, txb.gas)]);
     var receive = SuiAccount.ed25519Account();
 
     contract.newTransaction(txb,
         arguments: [TESTNET_IDS.bagStoreId, receive.getAddress()]);
-    print('recive.address: ${receive.getAddress()}');
     final splits = txb.splitCoins(txb.gas, [txb.pureInt(balances)]);
-    print('slipts[0]: ${splits[0]}');
     contract.add(txb,
         arguments: [TESTNET_IDS.bagStoreId, receive.getAddress(), splits[0]],
         typeArguments: ['0x2::coin::Coin<0x2::sui::SUI>']);
-    final addResult = await SuiClient(SuiUrls.testnet)
+    await SuiClient(SuiUrls.testnet)
         .signAndExecuteTransactionBlock(sender, txb);
-    print('createLink: addResult.digest: ${addResult.digest}');
     var url = getLink(receive.getSecretKey());
-    print('createLink: $url');
+    return url;
   }
 
   static getLink(Uint8List secretKey) {
@@ -112,7 +98,6 @@ class ZkSendLinkBuilder {
         encodeSuiPrivateKey(
             secretKey.sublist(0, PRIVATE_KEY_SIZE), 'ED25519')));
     var hash = '\$${encodedSecretKey}';
-    print('hash: $hash');
 
     var link = "${DEFAULT_ZK_SEND_LINK_OPTIONS['host']}/claim#${hash}";
 
@@ -129,13 +114,10 @@ Uint8List decodeSuiPrivateKeySecretKey(String value) {
   }
   final extendedSecretKey = Uint8List.fromList(bech32.fromWords(words));
   final secretKey = extendedSecretKey.sublist(1);
-  final signatureScheme = SIGNATURE_FLAG_TO_SCHEME[extendedSecretKey[0]]!;
-
   return secretKey;
 }
 
 String encodeSuiPrivateKey(Uint8List bytes, String scheme) {
-  print('bytes.length = ${bytes.length}');
   if (bytes.length != PRIVATE_KEY_SIZE) {
     throw Exception(
         'Invalid bytes length: bytes.length = ${bytes.length}, PRIVATE_KEY_SIZE: ${PRIVATE_KEY_SIZE}');

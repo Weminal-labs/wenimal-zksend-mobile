@@ -15,8 +15,11 @@ dependencies:
   jwt_decoder: ^2.0.1
   http: ^1.2.0
   dart_bech32: ^2.0.0
+  flutter_dotenv: ^5.1.0
 
-
+flutter:
+  assets:
+    - .env
 
 
 

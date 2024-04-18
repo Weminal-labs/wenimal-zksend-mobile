@@ -4,7 +4,6 @@ import 'dart:typed_data';
 import 'package:dart_bech32/dart_bech32.dart';
 import 'package:sui/builder/inputs.dart';
 import 'package:sui/sui.dart';
-import 'package:sui/sui_urls.dart';
 import 'package:sui/types/common.dart';
 import 'package:zksend/zk_bag.dart';
 import 'package:zksend/zk_sign_builder.dart';
@@ -37,7 +36,7 @@ const Map<int, String> SIGNATURE_FLAG_TO_SCHEME = {
   0x05: 'ZkLogin',
 };
 const DEFAULT_ZK_SEND_LINK_OPTIONS = {
-  'host': 'https://dev.polymedia-send.pages.dev',
+  'host': 'https://zksend.com',
   'path': '/claim',
   'network': 'mainnet',
 };

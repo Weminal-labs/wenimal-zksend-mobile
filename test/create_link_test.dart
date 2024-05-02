@@ -36,4 +36,15 @@ void main() {
 
     // String url = await ZkSendLinkBuilder.createLinkObject(ephemeralKeyPair: ephemeralKeyPair, senderAddress: senderAddress, suiObjectRef: SuiObjectRef(digest, objectId, version), objectType: objectType)
   });
+
+  test('test create link coin', () async {
+    Ed25519Keypair keypair = Ed25519Keypair.fromMnemonics(
+        'frozen okay holiday moon worth mushroom mix trap auto latin myth rapid');
+    String url = await ZkSendLinkBuilder.createLink2(
+        ephemeralKeyPair: keypair,
+        senderAddress:
+            '0x89ef5e69e2f6dd0e759f15a13823098011cca2122d1c0225f5b6f3337be88485',
+        balances: 10000000);
+    print(url);
+  });
 }

@@ -16,6 +16,14 @@ const MAINNET_IDS = ZkBagContractOptions(
   bagStoreTableId:
       '0x616db54ca564660cd58e36a4548be68b289371ef2611485c62c374a60960084e',
 );
+const TESTNET_IDS = ZkBagContractOptions(
+  packageId:
+      '0x888c4e513982e98a46fdbb251a4d88414477dd8173261b6c3e4e969747a23477',
+  bagStoreId:
+      '0x5c63e71734c82c48a3cb9124c54001d1a09736cfb1668b3b30cd92a96dd4d0ce',
+  bagStoreTableId:
+      '0x616db54ca564660cd58e36a4548be68b289371ef2611485c62c374a60960084e',
+);
 
 const Map<String, int> SIGNATURE_SCHEME_TO_FLAG = {
   'ED25519': 0x00,
@@ -36,7 +44,7 @@ const Map<int, String> SIGNATURE_FLAG_TO_SCHEME = {
   0x05: 'ZkLogin',
 };
 const DEFAULT_ZK_SEND_LINK_OPTIONS = {
-  'host': 'https://zksend.com',
+  'host': 'https://send.polymedia.app',
   'path': '/claim',
   'network': 'mainnet',
 };
@@ -125,6 +133,32 @@ class ZkSendLinkBuilder {
     var link = "${DEFAULT_ZK_SEND_LINK_OPTIONS['host']}/claim#${hash}";
 
     return link.toString();
+  }
+
+  static Future<String> createLink2({
+    required Keypair ephemeralKeyPair,
+    required String senderAddress,
+    required int balances,
+  }) async {
+    final suiClient2 = SuiClient(SuiUrls.testnet);
+    final txb = TransactionBlock();
+    ZkBag contract = ZkBag(package: TESTNET_IDS.packageId);
+
+    txb.setSender(senderAddress);
+    var receive = SuiAccount.ed25519Account();
+    print('ZKSEND TESTNET');
+    contract.newTransaction(txb,
+        arguments: [TESTNET_IDS.bagStoreId, receive.getAddress()]);
+    final splits = txb.splitCoins(txb.gas, [txb.pureInt(balances)]);
+    contract.add(txb,
+        arguments: [TESTNET_IDS.bagStoreId, receive.getAddress(), splits[0]],
+        typeArguments: ['0x2::coin::Coin<0x2::sui::SUI>']);
+    print('address: ${SuiAccount(ephemeralKeyPair).getAddress()}');
+    final respZkSend = await suiClient2.signAndExecuteTransactionBlock(
+        SuiAccount(ephemeralKeyPair), txb);
+    print('respZkSend: ${respZkSend.digest}');
+    var url = getLink(receive.getSecretKey());
+    return url;
   }
 }
 
